@@ -3,7 +3,7 @@ Cylindrical light art display.
 
 [Demo Video](https://www.youtube.com/watch?v=UvmhVLCMRTs):
 
-[![Demo Video](http://img.youtube.com/vi/UvmhVLCMRTs/1.jpg)](https://www.youtube.com/watch?v=UvmhVLCMRTs)
+[![Demo Video](http://img.youtube.com/vi/UvmhVLCMRTs/0.jpg)](https://www.youtube.com/watch?v=UvmhVLCMRTs)
 
 Available from Evil Genius Labs: http://www.evilgeniuslabs.org
 
