@@ -66,8 +66,6 @@
 
 uint16_t fire2012WithPalette()
 {
-    gPalette = HeatColors_p;
-
     // Array of temperature readings at each simulation cell
     static byte heat[MATRIX_WIDTH][MATRIX_HEIGHT];
 
@@ -93,7 +91,7 @@ uint16_t fire2012WithPalette()
           // Scale the heat value from 0-255 down to 0-240
           // for best results with color palettes.
           byte colorindex = scale8(heat[x][j], 240);
-          leds[XY(x, (MATRIX_HEIGHT - 1) - j)] = ColorFromPalette(gPalette, colorindex);
+          leds[XY(x, (MATRIX_HEIGHT - 1) - j)] = ColorFromPalette(HeatColors_p, colorindex);
       }
     }
 

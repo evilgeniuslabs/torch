@@ -13,8 +13,8 @@
 #define CHIPSET     WS2812B
 #define NUM_LEDS    240
 
-const uint8_t MATRIX_WIDTH = 17;
-const uint8_t MATRIX_HEIGHT = 14;
+const uint8_t MATRIX_WIDTH = 14;
+const uint8_t MATRIX_HEIGHT = 17;
 
 const int MATRIX_CENTER_X = MATRIX_WIDTH / 2;
 const int MATRIX_CENTER_Y = MATRIX_HEIGHT / 2;
@@ -30,7 +30,6 @@ CRGB leds[NUM_LEDS + 1];
 IRrecv irReceiver(IR_RECV_PIN);
 
 #include "Commands.h"
-
 #include "GradientPalettes.h"
 
 CRGB solidColor = CRGB::White;
@@ -64,26 +63,31 @@ const CRGBPalette16 palettes[] = {
   HeatColors_p,
   LavaColors_p,
   snowColors,
-  incandescentColors,
 };
 
 const int paletteCount = ARRAY_SIZE(palettes);
 
 int currentPaletteIndex = 0;
-CRGBPalette16 gPalette = palettes[0];
+CRGBPalette16 palette = palettes[0];
 
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 #include "Drawing.h"
+#include "Effects.h"
 
 #include "Noise.h"
-#include "Fairies.h"
 #include "Pulse.h"
 #include "Wave.h"
 #include "Fire2012WithPalette.h"
 #include "Torch.h"
+#include "AudioLogic.h"
+#include "AudioPatterns.h"
 
 const PatternList patterns = {
+  analyzerColumns,
+  analyzerPixels,
+  fallingSpectrogram,
+  audioNoise,
   fireNoise,
   lavaNoise,
   torch,
@@ -96,7 +100,6 @@ const PatternList patterns = {
   oceanNoise,
   blackAndWhiteNoise,
   blackAndBlueNoise,
-  drawFairies,
   pulse,
   wave,
   pride,
@@ -128,8 +131,8 @@ void setup() {
   FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   FastLED.setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(brightness);
-  FastLED.setDither(false);
-  //  FastLED.setDither(brightness < 255);
+//  FastLED.setDither(false);
+  FastLED.setDither(brightness < 255);
 
   // Initialize the IR receiver
   irReceiver.enableIRIn();
@@ -139,12 +142,16 @@ void setup() {
 
   autoPlayTimout = millis() + (autoPlayDurationSeconds * 1000);
 
+  initializeAudio();
+
   // Serial.println("setup end");
 }
 
 void loop() {
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random());
+
+  readAudio();
 
   uint16_t requestedDelay = currentPattern();
 
@@ -279,7 +286,7 @@ void adjustBrightness(int delta) {
 
   brightness = brightnessMap[level];
   FastLED.setBrightness(brightness);
-  //  FastLED.setDither(brightness < 255);
+  FastLED.setDither(brightness < 255);
 
   EEPROM.write(0, brightness);
 }
@@ -295,7 +302,7 @@ void cyclePalette(int delta = 1) {
   if (currentPaletteIndex >= paletteCount)
     currentPaletteIndex = 0;
 
-  gPalette = palettes[currentPaletteIndex];
+  palette = palettes[currentPaletteIndex];
 }
 
 void handleInput(unsigned int requestedDelay) {
@@ -522,7 +529,7 @@ void handleInput(unsigned int requestedDelay) {
 uint16_t XY( uint8_t x, uint8_t y) // maps the matrix to the strip
 {
   uint16_t i;
-  i = (y * MATRIX_WIDTH) + x;
+  i = (y * MATRIX_WIDTH) + (MATRIX_WIDTH - x);
 
   i = (NUM_LEDS - 1) - i;
 
@@ -574,7 +581,7 @@ uint16_t confetti()
   // random colored speckles that blink in and fade smoothly
   fadeToBlackBy(leds, NUM_LEDS, 10);
   int pos = random16(NUM_LEDS);
-  leds[pos] += ColorFromPalette(gPalette, gHue + random8(64), 255); // CHSV(gHue + random8(64), 200, 255);
+  leds[pos] += ColorFromPalette(palette, gHue + random8(64), 255); // CHSV(gHue + random8(64), 200, 255);
   return 8;
 }
 
@@ -584,7 +591,7 @@ uint16_t bpm()
   uint8_t BeatsPerMinute = 62;
   uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
   for (int i = 0; i < NUM_LEDS; i++) { //9948
-    leds[i] = ColorFromPalette(gPalette, gHue + (i * 2), beat - gHue + (i * 10));
+    leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
   }
   return 8;
 }
@@ -794,46 +801,41 @@ uint8_t DENSITY          = 255;
 uint16_t cloudTwinkles()
 {
   DENSITY = 255;
-  gCurrentPalette = CloudColors_p; // Blues and whites!
-  colortwinkles();
+  colortwinkles(CloudColors_p);
   return 20;
 }
 
 uint16_t rainbowTwinkles()
 {
   DENSITY = 255;
-  gCurrentPalette = RainbowColors_p; // Blues and whites!
-  colortwinkles();
+  colortwinkles(RainbowColors_p);
   return 20;
 }
 
 uint16_t snowTwinkles()
 {
   DENSITY = 255;
-  gCurrentPalette = snowColors;
-  colortwinkles();
+  colortwinkles(snowColors);
   return 20;
 }
 
 uint16_t incandescentTwinkles()
 {
   DENSITY = 255;
-  gCurrentPalette = incandescentColors;
-  colortwinkles();
+  colortwinkles(incandescentColors);
   return 20;
 }
 
 uint16_t fireflies()
 {
   DENSITY = 16;
-  gCurrentPalette = incandescentColors;
-  colortwinkles();
+  colortwinkles(incandescentColors);
   return 20;
 }
 
 enum { GETTING_DARKER = 0, GETTING_BRIGHTER = 1 };
 
-void colortwinkles()
+void colortwinkles(CRGBPalette16 palette)
 {
   // Make each pixel brighter or darker, depending on
   // its 'direction' flag.
@@ -843,7 +845,7 @@ void colortwinkles()
   if ( random8() < DENSITY ) {
     int pos = random16(NUM_LEDS);
     if ( !leds[pos]) {
-      leds[pos] = ColorFromPalette( gCurrentPalette, random8(), STARTING_BRIGHTNESS, NOBLEND);
+      leds[pos] = ColorFromPalette( palette, random8(), STARTING_BRIGHTNESS, NOBLEND);
       setPixelDirection(pos, GETTING_BRIGHTER);
     }
   }

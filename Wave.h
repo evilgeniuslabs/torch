@@ -18,42 +18,40 @@ uint16_t wave() {
 
   int n = 0;
 
-  gPalette = OceanColors_p;
-
   switch (rotation) {
     case 0:
       for (int x = 0; x < MATRIX_WIDTH; x++) {
         n = quadwave8(x * 2 + theta) / scaleHeight;
-        leds[XY(x, n)] = ColorFromPalette(gPalette, x + hue);
+        leds[XY(x, n)] = ColorFromPalette(palette, x + hue);
         if (waveCount == 2)
-          leds[XY(x, maxY - n)] = ColorFromPalette(gPalette, x + hue);
+          leds[XY(x, maxY - n)] = ColorFromPalette(palette, x + hue);
       }
       break;
   
     case 1:
       for (int y = 0; y < MATRIX_HEIGHT; y++) {
         n = quadwave8(y * 2 + theta) / scaleWidth;
-        leds[XY(n, y)] = ColorFromPalette(gPalette, y + hue);
+        leds[XY(n, y)] = ColorFromPalette(palette, y + hue);
         if (waveCount == 2)
-          leds[XY(maxX - n, y)] = ColorFromPalette(gPalette, y + hue);
+          leds[XY(maxX - n, y)] = ColorFromPalette(palette, y + hue);
       }
       break;
   
     case 2:
       for (int x = 0; x < MATRIX_WIDTH; x++) {
         n = quadwave8(x * 2 - theta) / scaleHeight;
-        leds[XY(x, n)] = ColorFromPalette(gPalette, x + hue);
+        leds[XY(x, n)] = ColorFromPalette(palette, x + hue);
         if (waveCount == 2)
-          leds[XY(x, maxY - n)] = ColorFromPalette(gPalette, x + hue);
+          leds[XY(x, maxY - n)] = ColorFromPalette(palette, x + hue);
       }
       break;
   
     case 3:
       for (int y = 0; y < MATRIX_HEIGHT; y++) {
         n = quadwave8(y * 2 - theta) / scaleWidth;
-        leds[XY(n, y)] = ColorFromPalette(gPalette, y + hue);
+        leds[XY(n, y)] = ColorFromPalette(palette, y + hue);
         if (waveCount == 2)
-          leds[XY(maxX - n, y)] = ColorFromPalette(gPalette, y + hue);
+          leds[XY(maxX - n, y)] = ColorFromPalette(palette, y + hue);
       }
       break;
   }

@@ -1,7 +1,7 @@
 // Portions of this code are adapted from "NoiseSmearing" by Stefan Petrick: https://gist.github.com/StefanPetrick/9ee2f677dbff64e3ba7a
 
 uint16_t pulse() {
-  gPalette = RainbowColors_p;
+//  palette = RainbowColors_p;
   
   static uint8_t hue = 0;
   static uint8_t centerX = 0;
@@ -18,17 +18,17 @@ uint16_t pulse() {
     centerY = random(32);
     hue = random(256); // 170;
   
-    drawCircle(centerX, centerY, step, ColorFromPalette(gPalette, hue));
+    drawCircle(centerX, centerY, step, ColorFromPalette(palette, hue));
     step++;
   }
   else {
     if (step < maxSteps) {
       // initial pulse
-      drawCircle(centerX, centerY, step, ColorFromPalette(gPalette, hue, pow(fadeRate, step - 2) * 255));
+      drawCircle(centerX, centerY, step, ColorFromPalette(palette, hue, pow(fadeRate, step - 2) * 255));
   
       // secondary pulse
       if (step > 3) {
-        drawCircle(centerX, centerY, step - 3, ColorFromPalette(gPalette, hue, pow(fadeRate, step - 2) * 255));
+        drawCircle(centerX, centerY, step - 3, ColorFromPalette(palette, hue, pow(fadeRate, step - 2) * 255));
       }
       step++;
     }

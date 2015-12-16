@@ -15,7 +15,7 @@ uint16_t noisespeedz = 1;
 
 // Scale determines how far apart the pixels in our noise matrix are.  Try
 // changing these values around to see how it affects the motion of the display.  The
-// higher the value of scale, the more "zoomed out" the noise iwll be.  A value
+// higher the value of scale, the more "zoomed out" the noise will be.  A value
 // of 1 will be so zoomed in, you'll mostly see solid colors.
 uint16_t noisescale = 30; // scale is set dynamically once we've started up
 
@@ -23,19 +23,8 @@ uint16_t noisescale = 30; // scale is set dynamically once we've started up
 uint8_t noise[MAX_DIMENSION][MAX_DIMENSION];
 
 uint8_t colorLoop = 0;
-// This function generates a random palette that's a gradient
-// between four different colors.  The first is a dim hue, the second is 
-// a bright hue, the third is a bright pastel, and the last is 
-// another bright hue.  This gives some visual bright/dark variation
-// which is more interesting than just a gradient of different hues.
-void SetupRandomPalette()
-{
-  gPalette = CRGBPalette16( 
-                      CHSV( random8(), 255, 32), 
-                      CHSV( random8(), 255, 255), 
-                      CHSV( random8(), 128, 255), 
-                      CHSV( random8(), 255, 255)); 
-}
+
+CRGBPalette16 blackAndWhiteStripedPalette;
 
 // This function sets up a palette of black and white stripes,
 // using code.  Since the palette is effectively an array of
@@ -44,14 +33,16 @@ void SetupRandomPalette()
 void SetupBlackAndWhiteStripedPalette()
 {
   // 'black out' all 16 palette entries...
-  fill_solid( gPalette, 16, CRGB::Black);
+  fill_solid( blackAndWhiteStripedPalette, 16, CRGB::Black);
   // and set every fourth one to white.
-  gPalette[0] = CRGB::White;
-  gPalette[4] = CRGB::White;
-  gPalette[8] = CRGB::White;
-  gPalette[12] = CRGB::White;
+  blackAndWhiteStripedPalette[0] = CRGB::White;
+  blackAndWhiteStripedPalette[4] = CRGB::White;
+  blackAndWhiteStripedPalette[8] = CRGB::White;
+  blackAndWhiteStripedPalette[12] = CRGB::White;
 
 }
+
+CRGBPalette16 blackAndBlueStripedPalette;
 
 // This function sets up a palette of black and blue stripes,
 // using code.  Since the palette is effectively an array of
@@ -60,25 +51,11 @@ void SetupBlackAndWhiteStripedPalette()
 void SetupBlackAndBlueStripedPalette()
 {
   // 'black out' all 16 palette entries...
-  fill_solid( gPalette, 16, CRGB::Black);
+  fill_solid( blackAndBlueStripedPalette, 16, CRGB::Black);
 
   for(uint8_t i = 0; i < 6; i++) {
-    gPalette[i] = CRGB::Blue;
+    blackAndBlueStripedPalette[i] = CRGB::Blue;
   }
-}
-
-// This function sets up a palette of purple and green stripes.
-void SetupPurpleAndGreenPalette()
-{
-  CRGB purple = CHSV( HUE_PURPLE, 255, 255);
-  CRGB green  = CHSV( HUE_GREEN, 255, 255);
-  CRGB black  = CRGB::Black;
-  
-  gPalette = CRGBPalette16( 
-    green,  green,  black,  black,
-    purple, purple, black,  black,
-    green,  green,  black,  black,
-    purple, purple, black,  black );
 }
 
 // There are several different palettes of colors demonstrated here.
@@ -140,7 +117,7 @@ void fillnoise8() {
   noisez += noisespeedz;
 }
 
-void mapNoiseToLEDsUsingPalette(uint8_t hueReduce = 0)
+void mapNoiseToLEDsUsingPalette(CRGBPalette16 palette, uint8_t hueReduce = 0)
 {
   static uint8_t ihue=0;
   
@@ -171,7 +148,7 @@ void mapNoiseToLEDsUsingPalette(uint8_t hueReduce = 0)
         else index -= hueReduce;
       }
 
-      CRGB color = ColorFromPalette( gPalette, index, bri);
+      CRGB color = ColorFromPalette( palette, index, bri);
       uint16_t n = XY(i, j);
 
       leds[n] = color;
@@ -181,95 +158,87 @@ void mapNoiseToLEDsUsingPalette(uint8_t hueReduce = 0)
   ihue+=1;
 }
 
-uint16_t drawNoise(uint8_t hueReduce = 0) {
+uint16_t drawNoise(CRGBPalette16 palette,uint8_t hueReduce = 0) {
   // generate noise data
   fillnoise8();
   
   // convert the noise data to colors in the LED array
   // using the current palette
-  mapNoiseToLEDsUsingPalette(hueReduce);
+  mapNoiseToLEDsUsingPalette(palette, hueReduce);
 
   return 10;
 }
 
 uint16_t rainbowNoise() {
-  gPalette = RainbowColors_p;
   noisespeedx = 9;
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(RainbowColors_p);
 }
 
 uint16_t rainbowStripeNoise() {
-  gPalette = RainbowStripeColors_p;
   noisespeedx = 9;
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 20;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(RainbowStripeColors_p);
 }
 
 uint16_t partyNoise() {
-  gPalette = PartyColors_p;
   noisespeedx = 9;
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(PartyColors_p);
 }
 
 uint16_t forestNoise() {
-  gPalette = ForestColors_p;
   noisespeedx = 9;
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 120;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(ForestColors_p);
 }
 
 uint16_t cloudNoise() {
-  gPalette = CloudColors_p;
   noisespeedx = 9;
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(CloudColors_p);
 }
 
 uint16_t fireNoise() {
-  gPalette = HeatColors_p;
   noisespeedx = 8; // 24;
   noisespeedy = 0;
   noisespeedz = 8;
   noisescale = 50;
   colorLoop = 0; 
-  return drawNoise(60);
+  return drawNoise(HeatColors_p, 60);
 }
 
 uint16_t lavaNoise() {
-  gPalette = LavaColors_p;
   noisespeedx = 32;
   noisespeedy = 0;
   noisespeedz = 16;
   noisescale = 50;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(LavaColors_p);
 }
 
 uint16_t oceanNoise() {
-  gPalette = OceanColors_p;
   noisespeedx = 9;
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 90;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(OceanColors_p);
 }
 
 uint16_t blackAndWhiteNoise() {
@@ -279,7 +248,7 @@ uint16_t blackAndWhiteNoise() {
   noisespeedz = 0;
   noisescale = 30;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(blackAndWhiteStripedPalette);
 }
 
 uint16_t blackAndBlueNoise() {
@@ -289,6 +258,6 @@ uint16_t blackAndBlueNoise() {
   noisespeedz = 0;
   noisescale = 30;
   colorLoop = 0; 
-  return drawNoise();
+  return drawNoise(blackAndBlueStripedPalette);
 }
 
