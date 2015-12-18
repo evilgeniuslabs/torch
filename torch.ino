@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+ 
 #include <FastLED.h>
 #include <IRremote.h>
 #include <EEPROM.h>
@@ -25,7 +25,6 @@
 #endif
 
 #define LED_PIN     0
-// #define CLOCK_PIN   2
 #define IR_RECV_PIN 12
 #define COLOR_ORDER GRB
 #define CHIPSET     WS2812B

@@ -1,3 +1,14 @@
+// ColorWavesWithPalettes
+// Animated shifting color waves, with several cross-fading color palettes.
+// by Mark Kriegsman, August 2015
+//
+// Color palettes courtesy of cpt-city and its contributors:
+//   http://soliton.vm.bytemark.co.uk/pub/cpt-city/
+//
+// Color palettes converted for FastLED using "PaletteKnife" v1:
+//   http://fastled.io/tools/paletteknife/
+//
+
 // Gradient Color Palette definitions for 33 different cpt-city color palettes.
 //    956 bytes of PROGMEM for all of the palettes together,
 //   +618 bytes of PROGMEM for gradient palette code (AVR).

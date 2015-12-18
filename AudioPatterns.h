@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+ 
 uint16_t analyzerColumns() {
   fill_solid(leds, NUM_LEDS, CRGB::Black);
 
@@ -28,18 +28,18 @@ uint16_t analyzerColumns() {
       levelRight = peaksRight[bandIndex];
     }
 
-    CRGB colorLeft = ColorFromPalette(palette, levelLeft / levelsPerHue);
-    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
+    CRGB colorLeft = ColorFromPalette(palette, levelLeft / levelsPerHue); // CRGB colorLeft = ColorFromPalette(palette, bandIndex * (256 / bandCount));
+//    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
 
     uint8_t x = bandIndex + bandOffset;
     if (x >= MATRIX_WIDTH)
       x -= MATRIX_WIDTH;
 
     drawFastVLine(x, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel, MATRIX_HEIGHT - 1, colorLeft);
-    drawFastVLine(x + bandCount, (MATRIX_HEIGHT - 1) - levelRight / levelsPerVerticalPixel, MATRIX_HEIGHT - 1, colorRight);
+//    drawFastVLine(x + bandCount, (MATRIX_HEIGHT - 1) - levelRight / levelsPerVerticalPixel, MATRIX_HEIGHT - 1, colorRight);
   }
 
-  return 0;
+  return 1;
 }
 
 uint16_t analyzerPixels() {
@@ -47,22 +47,22 @@ uint16_t analyzerPixels() {
 
   for (uint8_t bandIndex = 0; bandIndex < bandCount; bandIndex++) {
     int levelLeft = levelsLeft[bandIndex];
-    int levelRight = levelsRight[bandIndex];
+//    int levelRight = levelsRight[bandIndex];
 
     if (drawPeaks) {
       levelLeft = peaksLeft[bandIndex];
-      levelRight = peaksRight[bandIndex];
+//      levelRight = peaksRight[bandIndex];
     }
 
     CRGB colorLeft = ColorFromPalette(palette, levelLeft / levelsPerHue);
-    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
+//    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
 
     uint8_t x = bandIndex + bandOffset;
     if (x >= MATRIX_WIDTH)
       x -= MATRIX_WIDTH;
 
     leds[XY(x, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel)] = colorLeft;
-    leds[XY(x + bandCount, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel)] = colorRight;
+//    leds[XY(x + bandCount, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel)] = colorRight;
   }
 
   return 0;
@@ -73,26 +73,26 @@ uint16_t fallingSpectrogram() {
 
   for (uint8_t bandIndex = 0; bandIndex < bandCount; bandIndex++) {
     int levelLeft = levelsLeft[bandIndex];
-    int levelRight = levelsRight[bandIndex];
+//    int levelRight = levelsRight[bandIndex];
 
     if (drawPeaks) {
       levelLeft = peaksLeft[bandIndex];
-      levelRight = peaksRight[bandIndex];
+//      levelRight = peaksRight[bandIndex];
     }
 
     if (levelLeft <= 8) levelLeft = 0;
-    if (levelRight <= 8) levelRight = 0;
+//    if (levelRight <= 8) levelRight = 0;
 
     CRGB colorLeft = ColorFromPalette(palette, levelLeft / levelsPerHue);
-    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
+//    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
 
     if (currentPaletteIndex < 2) { // invert the first two palettes
       colorLeft = ColorFromPalette(palette, 205 - (levelLeft / 4 - 205));
-      colorRight = ColorFromPalette(palette, 205 - (levelLeft / 4 - 205));
+//      colorRight = ColorFromPalette(palette, 205 - (levelLeft / 4 - 205));
     }
     else {
       colorLeft = ColorFromPalette(palette, levelLeft / 4);
-      colorRight = ColorFromPalette(palette, levelRight / 4);
+//      colorRight = ColorFromPalette(palette, levelRight / 4);
     }
 
     uint8_t x = bandIndex + bandOffset;
@@ -100,7 +100,7 @@ uint16_t fallingSpectrogram() {
       x -= MATRIX_WIDTH;
 
     leds[XY(x, 0)] = colorLeft;
-    leds[XY(x + bandCount, 0)] = colorRight;
+//    leds[XY(x + bandCount, 0)] = colorRight;
   }
 
   return 0;
@@ -115,10 +115,15 @@ uint16_t audioNoise() {
   noisescale = 30;
   colorLoop = 0;
 
-//  if(peaksLeft[0] > 896)
-  noisespeedy = peaksLeft[0] / 64;
-//  if(peaksRight[0] > 896)
-  noisespeedz = peaksRight[0] / 256;
+  static int lastPeak = 0;
+  
+  if(peaksLeft[0] >= lastPeak) {
+    noisespeedy = peaksLeft[0] / 32;
+  }
+
+  noisespeedz = peaksLeft[0] / 128;
+  
+  lastPeak = peaksLeft[0];
 
   fillnoise8();
 

@@ -1,3 +1,21 @@
+/*
+ * Torch: https://github.com/evilgeniuslabs/torch
+ * Copyright (C) 2015 Jason Coon
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 uint16_t wave() {
   static byte rotation = 3;
 
@@ -27,7 +45,7 @@ uint16_t wave() {
           leds[XY(x, maxY - n)] = ColorFromPalette(palette, x + hue);
       }
       break;
-  
+
     case 1:
       for (int y = 0; y < MATRIX_HEIGHT; y++) {
         n = quadwave8(y * 2 + theta) / scaleWidth;
@@ -36,7 +54,7 @@ uint16_t wave() {
           leds[XY(maxX - n, y)] = ColorFromPalette(palette, y + hue);
       }
       break;
-  
+
     case 2:
       for (int x = 0; x < MATRIX_WIDTH; x++) {
         n = quadwave8(x * 2 - theta) / scaleHeight;
@@ -45,7 +63,7 @@ uint16_t wave() {
           leds[XY(x, maxY - n)] = ColorFromPalette(palette, x + hue);
       }
       break;
-  
+
     case 3:
       for (int y = 0; y < MATRIX_HEIGHT; y++) {
         n = quadwave8(y * 2 - theta) / scaleWidth;
@@ -65,4 +83,3 @@ uint16_t wave() {
 
   return 0;
 }
-

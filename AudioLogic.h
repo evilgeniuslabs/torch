@@ -1,24 +1,19 @@
 /*
  * Torch: https://github.com/evilgeniuslabs/torch
- * Copyright (c) 2015 Jason Coon
+ * Copyright (C) 2015 Jason Coon
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #define MSGEQ7_STROBE_PIN 2
@@ -37,9 +32,8 @@ int peaksRight[bandCount];
 static const uint8_t peakDecay = (1024 / MATRIX_HEIGHT) / 4;
 bool drawPeaks = true;
 
-int noiseCorrection[bandCount * 2] = {
-  -40, -40, -40, -40, -40, -40, -40, 
-  -40, -40, -40, -40, -40, -40, -40, 
+int noiseCorrection[bandCount] = {
+  -55, -50, -45, -55, -40, -55, -50,
 };
 
 uint8_t bandOffset = 3;
@@ -68,24 +62,24 @@ void readAudio() {
 
   for (uint8_t band = 0; band < bandCount; band++) {
     digitalWrite(MSGEQ7_STROBE_PIN, LOW);
-    delayMicroseconds(20);
+    delayMicroseconds(30);
 
     levelLeft = analogRead(MSGEQ7_LEFT_PIN);
     levelRight = analogRead(MSGEQ7_RIGHT_PIN);
     digitalWrite(MSGEQ7_STROBE_PIN, HIGH);
 
     levelLeft += noiseCorrection[band];
-    levelRight += noiseCorrection[band + bandCount];
+    levelRight += noiseCorrection[band];
 
     if(levelLeft < 0) levelLeft = 0;
-    if(levelLeft > 1024) levelLeft = 1024;
-    
+    if(levelLeft > 1023) levelLeft = 1023;
+
     if(levelRight < 0) levelRight = 0;
-    if(levelRight > 1024) levelRight = 1024;
-    
+    if(levelRight > 1023) levelRight = 1023;
+
     levelsLeft[band] = levelLeft;
     levelsRight[band] = levelRight;
-    
+
     if (levelLeft >= peaksLeft[band]) {
       peaksLeft[band] = levelLeft;
     }
@@ -103,4 +97,3 @@ void readAudio() {
     }
   }
 }
-
