@@ -1,17 +1,17 @@
 /*
- * Torch
+ * Torch: https://github.com/evilgeniuslabs/torch
  * Copyright (C) 2015 Jason Coon
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -96,7 +96,7 @@ void fillnoise8() {
     noisey = random16();
     noisez = random16();
   }
-  
+
   // If we're runing at a low "speed", some 8-bit artifacts become visible
   // from frame-to-frame.  In order to reduce this, we can do some fast data-smoothing.
   // The amount of data smoothing we're doing depends on "speed".
@@ -106,12 +106,12 @@ void fillnoise8() {
   if( lowestNoise < 8) {
     dataSmoothing = 200 - (lowestNoise * 4);
   }
-  
+
   for(int i = 0; i < MAX_DIMENSION; i++) {
     int ioffset = noisescale * i;
     for(int j = 0; j < MAX_DIMENSION; j++) {
       int joffset = noisescale * j;
-      
+
       uint8_t data = inoise8(noisex + ioffset, noisey + joffset, noisez);
 
       // The range of the inoise8 function is roughly 16-238.
@@ -125,11 +125,11 @@ void fillnoise8() {
         uint8_t newdata = scale8( olddata, dataSmoothing) + scale8( data, 256 - dataSmoothing);
         data = newdata;
       }
-      
+
       noise[i][j] = data;
     }
   }
-  
+
   noisex += noisespeedx;
   noisey += noisespeedy;
   noisez += noisespeedz;
@@ -138,7 +138,7 @@ void fillnoise8() {
 void mapNoiseToLEDsUsingPalette(CRGBPalette16 palette, uint8_t hueReduce = 0)
 {
   static uint8_t ihue=0;
-  
+
   for(int i = 0; i < MATRIX_WIDTH; i++) {
     for(int j = 0; j < MATRIX_HEIGHT; j++) {
       // We use the value at the (i,j) coordinate in the noise
@@ -149,11 +149,11 @@ void mapNoiseToLEDsUsingPalette(CRGBPalette16 palette, uint8_t hueReduce = 0)
       uint8_t bri =   noise[i][j];
 
       // if this palette is a 'loop', add a slowly-changing base value
-      if( colorLoop) { 
+      if( colorLoop) {
         index += ihue;
       }
 
-      // brighten up, as the color palette itself often contains the 
+      // brighten up, as the color palette itself often contains the
       // light/dark dynamic range desired
       if( bri > 127 ) {
         bri = 255;
@@ -172,14 +172,14 @@ void mapNoiseToLEDsUsingPalette(CRGBPalette16 palette, uint8_t hueReduce = 0)
       leds[n] = color;
     }
   }
-  
+
   ihue+=1;
 }
 
 uint16_t drawNoise(CRGBPalette16 palette,uint8_t hueReduce = 0) {
   // generate noise data
   fillnoise8();
-  
+
   // convert the noise data to colors in the LED array
   // using the current palette
   mapNoiseToLEDsUsingPalette(palette, hueReduce);
@@ -192,7 +192,7 @@ uint16_t rainbowNoise() {
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(RainbowColors_p);
 }
 
@@ -201,7 +201,7 @@ uint16_t rainbowStripeNoise() {
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 20;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(RainbowStripeColors_p);
 }
 
@@ -210,7 +210,7 @@ uint16_t partyNoise() {
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(PartyColors_p);
 }
 
@@ -219,7 +219,7 @@ uint16_t forestNoise() {
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 120;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(ForestColors_p);
 }
 
@@ -228,7 +228,7 @@ uint16_t cloudNoise() {
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(CloudColors_p);
 }
 
@@ -237,7 +237,7 @@ uint16_t fireNoise() {
   noisespeedy = 0;
   noisespeedz = 8;
   noisescale = 50;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(HeatColors_p, 60);
 }
 
@@ -246,7 +246,7 @@ uint16_t lavaNoise() {
   noisespeedy = 0;
   noisespeedz = 16;
   noisescale = 50;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(LavaColors_p);
 }
 
@@ -255,7 +255,7 @@ uint16_t oceanNoise() {
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 90;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(OceanColors_p);
 }
 
@@ -265,7 +265,7 @@ uint16_t blackAndWhiteNoise() {
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(blackAndWhiteStripedPalette);
 }
 
@@ -275,7 +275,6 @@ uint16_t blackAndBlueNoise() {
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
-  colorLoop = 0; 
+  colorLoop = 0;
   return drawNoise(blackAndBlueStripedPalette);
 }
-
