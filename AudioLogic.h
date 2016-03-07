@@ -33,7 +33,8 @@ static const uint8_t peakDecay = (1024 / MATRIX_HEIGHT) / 4;
 bool drawPeaks = true;
 
 int noiseCorrection[bandCount] = {
-  -55, -50, -45, -55, -40, -55, -50,
+  //  -55, -50, -45, -55, -40, -55, -50,
+  0, 0, 0, 0, 0, 0, 0
 };
 
 uint8_t bandOffset = 3;
@@ -71,29 +72,29 @@ void readAudio() {
     levelLeft += noiseCorrection[band];
     levelRight += noiseCorrection[band];
 
-    if(levelLeft < 0) levelLeft = 0;
-    if(levelLeft > 1023) levelLeft = 1023;
-
-    if(levelRight < 0) levelRight = 0;
-    if(levelRight > 1023) levelRight = 1023;
+//    if (levelLeft < 0) levelLeft = 0;
+//    if (levelLeft > 1023) levelLeft = 1023;
+//
+//    if (levelRight < 0) levelRight = 0;
+//    if (levelRight > 1023) levelRight = 1023;
 
     levelsLeft[band] = levelLeft;
     levelsRight[band] = levelRight;
 
-    if (levelLeft >= peaksLeft[band]) {
-      peaksLeft[band] = levelLeft;
-    }
-    else if (peaksLeft[band] > 0) {
-      peaksLeft[band] = peaksLeft[band] - peakDecay;
-      if(peaksLeft[band] < 0) peaksLeft[band] = 0;
-    }
-
-    if (levelRight >= peaksRight[band]) {
-      peaksRight[band] = levelRight;
-    }
-    else if (peaksRight[band] > 0) {
-      peaksRight[band] = peaksRight[band] - peakDecay;
-      if(peaksRight[band] < 0) peaksRight[band] = 0;
-    }
+    //    if (levelLeft >= peaksLeft[band]) {
+    peaksLeft[band] = levelLeft;
+    //    }
+    //    else if (peaksLeft[band] > 0) {
+    //      peaksLeft[band] = peaksLeft[band] - peakDecay;
+    //      if(peaksLeft[band] < 0) peaksLeft[band] = 0;
+    //    }
+    //
+    //    if (levelRight >= peaksRight[band]) {
+    peaksRight[band] = levelRight;
+    //    }
+    //    else if (peaksRight[band] > 0) {
+    //      peaksRight[band] = peaksRight[band] - peakDecay;
+    //      if(peaksRight[band] < 0) peaksRight[band] = 0;
+    //    }
   }
 }

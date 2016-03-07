@@ -29,14 +29,40 @@ uint16_t analyzerColumns() {
     }
 
     CRGB colorLeft = ColorFromPalette(palette, levelLeft / levelsPerHue); // CRGB colorLeft = ColorFromPalette(palette, bandIndex * (256 / bandCount));
-//    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
+    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
 
     uint8_t x = bandIndex + bandOffset;
     if (x >= MATRIX_WIDTH)
       x -= MATRIX_WIDTH;
 
     drawFastVLine(x, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel, MATRIX_HEIGHT - 1, colorLeft);
-//    drawFastVLine(x + bandCount, (MATRIX_HEIGHT - 1) - levelRight / levelsPerVerticalPixel, MATRIX_HEIGHT - 1, colorRight);
+    drawFastVLine(x + bandCount, (MATRIX_HEIGHT - 1) - levelRight / levelsPerVerticalPixel, MATRIX_HEIGHT - 1, colorRight);
+  }
+
+  return 1;
+}
+
+uint16_t analyzerColumnsSolid() {
+  fill_solid(leds, NUM_LEDS, CRGB::Black);
+
+  for (uint8_t bandIndex = 0; bandIndex < bandCount; bandIndex++) {
+    int levelLeft = levelsLeft[bandIndex];
+    int levelRight = levelsRight[bandIndex];
+
+    if (drawPeaks) {
+      levelLeft = peaksLeft[bandIndex];
+      levelRight = peaksRight[bandIndex];
+    }
+
+    CRGB colorLeft = ColorFromPalette(palette, gHue);
+    CRGB colorRight = ColorFromPalette(palette, gHue);
+
+    uint8_t x = bandIndex + bandOffset;
+    if (x >= MATRIX_WIDTH)
+      x -= MATRIX_WIDTH;
+
+    drawFastVLine(x, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel, MATRIX_HEIGHT - 1, colorLeft);
+    drawFastVLine(x + bandCount, (MATRIX_HEIGHT - 1) - levelRight / levelsPerVerticalPixel, MATRIX_HEIGHT - 1, colorRight);
   }
 
   return 1;
@@ -47,22 +73,22 @@ uint16_t analyzerPixels() {
 
   for (uint8_t bandIndex = 0; bandIndex < bandCount; bandIndex++) {
     int levelLeft = levelsLeft[bandIndex];
-//    int levelRight = levelsRight[bandIndex];
+    int levelRight = levelsRight[bandIndex];
 
     if (drawPeaks) {
       levelLeft = peaksLeft[bandIndex];
-//      levelRight = peaksRight[bandIndex];
+      levelRight = peaksRight[bandIndex];
     }
 
     CRGB colorLeft = ColorFromPalette(palette, levelLeft / levelsPerHue);
-//    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
+    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
 
     uint8_t x = bandIndex + bandOffset;
     if (x >= MATRIX_WIDTH)
       x -= MATRIX_WIDTH;
 
     leds[XY(x, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel)] = colorLeft;
-//    leds[XY(x + bandCount, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel)] = colorRight;
+    leds[XY(x + bandCount, (MATRIX_HEIGHT - 1) - levelLeft / levelsPerVerticalPixel)] = colorRight;
   }
 
   return 0;
@@ -73,26 +99,26 @@ uint16_t fallingSpectrogram() {
 
   for (uint8_t bandIndex = 0; bandIndex < bandCount; bandIndex++) {
     int levelLeft = levelsLeft[bandIndex];
-//    int levelRight = levelsRight[bandIndex];
+    int levelRight = levelsRight[bandIndex];
 
     if (drawPeaks) {
       levelLeft = peaksLeft[bandIndex];
-//      levelRight = peaksRight[bandIndex];
+      levelRight = peaksRight[bandIndex];
     }
 
     if (levelLeft <= 8) levelLeft = 0;
-//    if (levelRight <= 8) levelRight = 0;
+    if (levelRight <= 8) levelRight = 0;
 
-    CRGB colorLeft = ColorFromPalette(palette, levelLeft / levelsPerHue);
-//    CRGB colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
+    CRGB colorLeft;
+    CRGB colorRight;
 
     if (currentPaletteIndex < 2) { // invert the first two palettes
-      colorLeft = ColorFromPalette(palette, 205 - (levelLeft / 4 - 205));
-//      colorRight = ColorFromPalette(palette, 205 - (levelLeft / 4 - 205));
+      colorLeft = ColorFromPalette(palette, 205 - (levelLeft / levelsPerHue - 205));
+      colorRight = ColorFromPalette(palette, 205 - (levelLeft / levelsPerHue - 205));
     }
     else {
-      colorLeft = ColorFromPalette(palette, levelLeft / 4);
-//      colorRight = ColorFromPalette(palette, levelRight / 4);
+      colorLeft = ColorFromPalette(palette, levelLeft / levelsPerHue);
+      colorRight = ColorFromPalette(palette, levelRight / levelsPerHue);
     }
 
     uint8_t x = bandIndex + bandOffset;
@@ -100,52 +126,232 @@ uint16_t fallingSpectrogram() {
       x -= MATRIX_WIDTH;
 
     leds[XY(x, 0)] = colorLeft;
-//    leds[XY(x + bandCount, 0)] = colorRight;
+    leds[XY(x + bandCount, 0)] = colorRight;
   }
 
   return 0;
 }
 
-uint16_t audioNoise() {
-  // generate noise data
+uint16_t audioFire() {
+  moveUp();
+
+  for (uint8_t bandIndex = 0; bandIndex < bandCount; bandIndex++) {
+    int levelLeft = levelsLeft[bandIndex];
+    int levelRight = levelsRight[bandIndex];
+
+    if (drawPeaks) {
+      levelLeft = peaksLeft[bandIndex];
+      levelRight = peaksRight[bandIndex];
+    }
+
+    if (levelLeft <= 8) levelLeft = 0;
+    if (levelRight <= 8) levelRight = 0;
+
+    CRGB colorLeft = ColorFromPalette(HeatColors_p, levelLeft / 5);
+    CRGB colorRight = ColorFromPalette(HeatColors_p, levelRight / 5);
+
+    uint8_t x = bandIndex + bandOffset;
+    if (x >= MATRIX_WIDTH)
+      x -= MATRIX_WIDTH;
+
+    leds[XY(x, MATRIX_HEIGHT - 1)] = colorLeft;
+    leds[XY(x + bandCount, MATRIX_HEIGHT - 1)] = colorRight;
+  }
+
+  return 0;
+}
+
+uint16_t rainbowAudioNoise() {
+  static int lastPeak0 = 0;
 
   noisespeedx = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedx = peaksLeft[0] / 57;
+  }
+
+  lastPeak0 = peaksLeft[0];
+
   noisespeedy = 0;
   noisespeedz = 0;
   noisescale = 30;
   colorLoop = 0;
+  return drawNoise(RainbowColors_p);
+}
 
-  static int lastPeak = 0;
+uint16_t rainbowStripeAudioNoise() {
+  static int lastPeak0 = 0;
 
-  if(peaksLeft[0] >= lastPeak) {
+  noisespeedy = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedy = peaksLeft[0] / 57;
+  }
+
+  lastPeak0 = peaksLeft[0];
+
+  noisespeedx = 0;
+  noisespeedz = 0;
+  noisescale = 20;
+  colorLoop = 0;
+  return drawNoise(RainbowStripeColors_p);
+}
+
+uint16_t partyAudioNoise() {
+  static int lastPeak0 = 0;
+
+  noisespeedx = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedx = peaksLeft[0] / 57;
+  }
+
+  lastPeak0 = peaksLeft[0];
+
+  noisespeedy = 0;
+  noisespeedz = 0;
+  noisescale = 30;
+  colorLoop = 0;
+  return drawNoise(PartyColors_p);
+}
+
+uint16_t forestAudioNoise() {
+  static int lastPeak0 = 0;
+
+  noisespeedx = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedx = peaksLeft[0] / 57;
+  }
+
+  lastPeak0 = peaksLeft[0];
+
+  noisespeedy = 0;
+  noisespeedz = 0;
+  noisescale = 120;
+  colorLoop = 0;
+  return drawNoise(ForestColors_p);
+}
+
+uint16_t cloudAudioNoise() {
+  static int lastPeak0 = 0;
+
+  noisespeedx = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedx = peaksLeft[0] / 57;
+  }
+
+  lastPeak0 = peaksLeft[0];
+
+  noisespeedy = 0;
+  noisespeedz = 0;
+  noisescale = 30;
+  colorLoop = 0;
+  return drawNoise(CloudColors_p);
+}
+
+uint16_t fireAudioNoise() {
+  static int lastPeak0 = 0;
+  static int lastPeak6 = 0;
+
+  noisespeedx = 0;
+  noisespeedz = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedx = peaksLeft[0] / 32;
+  }
+
+  if (peaksLeft[6] >= lastPeak6) {
+    noisespeedz = peaksLeft[6] / 128;
+  }
+
+  lastPeak0 = peaksLeft[0];
+  lastPeak6 = peaksLeft[6];
+
+  noisespeedy = 0;
+  noisescale = 50;
+  colorLoop = 0;
+
+  return drawNoise(HeatColors_p, 60);
+}
+
+uint16_t lavaAudioNoise() {
+  static int lastPeak0 = 0;
+  static int lastPeak6 = 0;
+
+  noisespeedy = 0;
+  noisespeedz = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
     noisespeedy = peaksLeft[0] / 32;
   }
 
-  noisespeedz = peaksLeft[0] / 128;
-
-  lastPeak = peaksLeft[0];
-
-  fillnoise8();
-
-  for (int i = 0; i < MATRIX_WIDTH; i++) {
-    for (int j = 0; j < MATRIX_HEIGHT; j++) {
-      uint8_t index = noise[i][j];
-      uint8_t bri =   noise[j][i];
-
-      // brighten up, as the color palette itself often contains the
-      // light/dark dynamic range desired
-      if ( bri > 127 ) {
-        bri = 255;
-      } else {
-        bri = dim8_raw( bri * 2);
-      }
-
-      CRGB color = ColorFromPalette( palette, index, bri);
-      uint16_t n = XY(i, j);
-
-      leds[n] = color;
-    }
+  if (peaksLeft[6] >= lastPeak6) {
+    noisespeedz = peaksLeft[6] / 128;
   }
 
-  return 0;
+  lastPeak0 = peaksLeft[0];
+  lastPeak6 = peaksLeft[6];
+
+  noisespeedx = 0;
+  noisescale = 50;
+  colorLoop = 0;
+  return drawNoise(LavaColors_p);
+}
+
+uint16_t oceanAudioNoise() {
+  static int lastPeak0 = 0;
+
+  noisespeedy = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedy = peaksLeft[0] / 57;
+  }
+
+  lastPeak0 = peaksLeft[0];
+
+  noisespeedx = 0;
+  noisespeedz = 0;
+  noisescale = 90;
+  colorLoop = 0;
+  return drawNoise(OceanColors_p);
+}
+
+uint16_t blackAndWhiteAudioNoise() {
+  SetupBlackAndWhiteStripedPalette();
+  static int lastPeak0 = 0;
+
+  noisespeedy = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedy = peaksLeft[0] / 128;
+  }
+
+  lastPeak0 = peaksLeft[0];
+
+  noisespeedx = 0;
+  noisespeedz = 0;
+  noisescale = 15;
+  colorLoop = 0;
+  return drawNoise(blackAndWhiteStripedPalette);
+}
+
+uint16_t blackAndBlueAudioNoise() {
+  SetupBlackAndBlueStripedPalette();
+  static int lastPeak0 = 0;
+
+  noisespeedx = 0;
+
+  if (peaksLeft[0] >= lastPeak0) {
+    noisespeedx = peaksLeft[0] / 57;
+  }
+
+  lastPeak0 = peaksLeft[0];
+
+  noisespeedy = 0;
+  noisespeedz = 0;
+  noisescale = 45;
+  colorLoop = 0;
+  return drawNoise(blackAndBlueStripedPalette);
 }

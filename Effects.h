@@ -101,6 +101,15 @@ void streamUpAndRight(byte scale)
     leds[XY(MATRIX_WIDTH - 1, y)].nscale8(scale);
 }
 
+void moveUp()
+{
+  for (int y = 0; y < MATRIX_HEIGHT - 1; y++) {
+    for (int x = 0; x < MATRIX_WIDTH; x++) {
+      leds[XY(x, y)] = leds[XY(x, y + 1)];
+    }
+  }
+}
+
 void moveDown() {
   for (int y = MATRIX_HEIGHT - 1; y > 0; y--) {
     for (int x = 0; x < MATRIX_WIDTH; x++) {

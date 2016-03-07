@@ -19,12 +19,13 @@
 #include <FastLED.h>
 #include <IRremote.h>
 #include <EEPROM.h>
+#include <Bounce2.h>
 
 #if FASTLED_VERSION < 3001000
 #error "Requires FastLED 3.1 or later; check github for latest code."
 #endif
 
-#define LED_PIN     0
+#define LED_PIN     11
 #define IR_RECV_PIN 12
 #define COLOR_ORDER GRB
 #define CHIPSET     WS2812B
@@ -45,6 +46,10 @@ uint8_t brightness = brightnessMap[0];
 
 CRGB leds[NUM_LEDS + 1];
 IRrecv irReceiver(IR_RECV_PIN);
+
+#define BUTTON_1_PIN 16
+
+Bounce button1 = Bounce();
 
 #include "Commands.h"
 #include "GradientPalettes.h"
@@ -102,9 +107,20 @@ uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 const PatternList patterns = {
   analyzerColumns,
+  analyzerColumnsSolid,
   analyzerPixels,
   fallingSpectrogram,
-  audioNoise,
+  audioFire,
+  rainbowAudioNoise,
+  rainbowStripeAudioNoise,
+  partyAudioNoise,
+  forestAudioNoise,
+  cloudAudioNoise,
+  fireAudioNoise,
+  lavaAudioNoise,
+  oceanAudioNoise,
+  blackAndWhiteAudioNoise,
+  blackAndBlueAudioNoise,
   fireNoise,
   lavaNoise,
   torch,
@@ -148,12 +164,16 @@ void setup() {
   FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   FastLED.setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(brightness);
-//  FastLED.setDither(false);
+  //  FastLED.setDither(false);
   FastLED.setDither(brightness < 255);
 
   // Initialize the IR receiver
   irReceiver.enableIRIn();
   irReceiver.blink13(true);
+
+  pinMode(BUTTON_1_PIN, INPUT_PULLUP);
+  button1.attach(BUTTON_1_PIN);
+  button1.interval(5);
 
   currentPattern = patterns[currentPatternIndex];
 
@@ -168,7 +188,9 @@ void loop() {
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random());
 
-  readAudio();
+  EVERY_N_MILLISECONDS(30) {
+    readAudio();
+  }
 
   uint16_t requestedDelay = currentPattern();
 
@@ -243,13 +265,21 @@ void powerOff()
   FastLED.show(); // display this frame
 
   while (true) {
+    // check for physical button input
+    button1.update();
+
+    if (button1.fell()) {
+      Serial.println("Button 1 pressed");
+      return;
+    }
+
     InputCommand command = readCommand();
     if (command == InputCommand::Power ||
         command == InputCommand::Brightness)
       return;
 
-    // go idle for a while, converve power
-    delay(250);
+    //    // go idle for a while, converve power
+    //    delay(250);
   }
 }
 
@@ -297,9 +327,9 @@ void adjustBrightness(int delta) {
 
   level += delta;
   if (level < 0)
-    level = 0;
-  if (level >= brightnessCount)
     level = brightnessCount - 1;
+  if (level >= brightnessCount)
+    level = 0;
 
   brightness = brightnessMap[level];
   FastLED.setBrightness(brightness);
@@ -322,10 +352,32 @@ void cyclePalette(int delta = 1) {
   palette = palettes[currentPaletteIndex];
 }
 
+unsigned long buttonPressTimeStamp;
+
 void handleInput(unsigned int requestedDelay) {
   unsigned int requestedDelayTimeout = millis() + requestedDelay;
 
   while (true) {
+    // check for physical button input
+    button1.update();
+
+    if (button1.fell()) {
+      Serial.println("Button 1 depressed");
+      buttonPressTimeStamp = millis();
+    }
+
+    if (button1.rose()) {
+      Serial.println("Button 1 released");
+
+      //      if (millis() - buttonPressTimeStamp > 500) {
+      move(1);
+      //      } else {
+      //        if (cycleBrightness() == 0) {
+      //          powerOff();
+      //        }
+      //      }
+    }
+
     command = readCommand(defaultHoldDelay);
 
     if (command != InputCommand::None) {
