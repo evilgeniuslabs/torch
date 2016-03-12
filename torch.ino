@@ -253,7 +253,6 @@ void setSolidColor(CRGB color) {
 void powerOff()
 {
   // clear the display
-
   const uint8_t stepSize = 4;
 
   for (uint8_t i = 0; i < NUM_LEDS / 2 - stepSize; i += stepSize) {
@@ -261,7 +260,6 @@ void powerOff()
       leds[i + j] = CRGB::Black;
       leds[(NUM_LEDS - 1) - (i + j)] = CRGB::Black;
     }
-
     FastLED.show(); // display this frame
   }
 
@@ -274,18 +272,15 @@ void powerOff()
     button1.update();
     button2.update();
 
-    if (button1.fell() || button2.fell()) {
-      Serial.println("Button pressed");
+    if (button1.rose() || button2.rose()) {
+      Serial.println("Button released");
       return;
     }
 
+    // check for ir remote input
     InputCommand command = readCommand();
-    if (command == InputCommand::Power ||
-        command == InputCommand::Brightness)
+    if (command != InputCommand::None)
       return;
-
-    //    // go idle for a while, converve power
-    //    delay(250);
   }
 }
 
@@ -332,10 +327,12 @@ void adjustBrightness(int delta) {
   int level = getBrightnessLevel();
 
   level += delta;
+
+  // don't wrap
   if (level < 0)
-    level = brightnessCount - 1;
-  if (level >= brightnessCount)
     level = 0;
+  if (level >= brightnessCount)
+    level = brightnessCount - 1;
 
   brightness = brightnessMap[level];
   FastLED.setBrightness(brightness);
@@ -386,10 +383,8 @@ void handleInput(unsigned int requestedDelay) {
 
     if (button2.rose()) {
       Serial.println("Button 2 released");
-      if(cycleBrightness() == 0) {
-        powerOff();
-        break;
-      }
+      powerOff();
+      break;
     }
 
     command = readCommand(defaultHoldDelay);
