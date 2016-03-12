@@ -48,8 +48,10 @@ CRGB leds[NUM_LEDS + 1];
 IRrecv irReceiver(IR_RECV_PIN);
 
 #define BUTTON_1_PIN 16
+#define BUTTON_2_PIN 17
 
 Bounce button1 = Bounce();
+Bounce button2 = Bounce();
 
 #include "Commands.h"
 #include "GradientPalettes.h"
@@ -172,8 +174,11 @@ void setup() {
   irReceiver.blink13(true);
 
   pinMode(BUTTON_1_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_2_PIN, INPUT_PULLUP);
   button1.attach(BUTTON_1_PIN);
+  button2.attach(BUTTON_2_PIN);
   button1.interval(5);
+  button2.interval(5);
 
   currentPattern = patterns[currentPatternIndex];
 
@@ -267,9 +272,10 @@ void powerOff()
   while (true) {
     // check for physical button input
     button1.update();
+    button2.update();
 
-    if (button1.fell()) {
-      Serial.println("Button 1 pressed");
+    if (button1.fell() || button2.fell()) {
+      Serial.println("Button pressed");
       return;
     }
 
@@ -352,7 +358,8 @@ void cyclePalette(int delta = 1) {
   palette = palettes[currentPaletteIndex];
 }
 
-unsigned long buttonPressTimeStamp;
+unsigned long button1PressTimeStamp;
+unsigned long button2PressTimeStamp;
 
 void handleInput(unsigned int requestedDelay) {
   unsigned int requestedDelayTimeout = millis() + requestedDelay;
@@ -360,22 +367,29 @@ void handleInput(unsigned int requestedDelay) {
   while (true) {
     // check for physical button input
     button1.update();
+    button2.update();
 
     if (button1.fell()) {
       Serial.println("Button 1 depressed");
-      buttonPressTimeStamp = millis();
+      button1PressTimeStamp = millis();
+    }
+
+    if (button2.fell()) {
+      Serial.println("Button 2 depressed");
+      button2PressTimeStamp = millis();
     }
 
     if (button1.rose()) {
       Serial.println("Button 1 released");
-
-      //      if (millis() - buttonPressTimeStamp > 500) {
       move(1);
-      //      } else {
-      //        if (cycleBrightness() == 0) {
-      //          powerOff();
-      //        }
-      //      }
+    }
+
+    if (button2.rose()) {
+      Serial.println("Button 2 released");
+      if(cycleBrightness() == 0) {
+        powerOff();
+        break;
+      }
     }
 
     command = readCommand(defaultHoldDelay);
